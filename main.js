@@ -87,189 +87,57 @@ let state = {
   logs: []
 };
 
-// ─── Soothing Oceanic Whale Soundscape Engine (Compulsory, Non-Annoying) ──
-class WhaleAudioEngine {
+// ─── Video Soundtrack Audio Engine (Compulsory, Seamless, Hidden) ──
+class VideoSoundtrackEngine {
   constructor() {
-    this.ctx = null;
-    this.masterGain = null;
-    this.audioElement = null;
-    this.elementSource = null;
-    this.initialized = false;
-    this.whaleCallTimer = null;
+    this.audio = null;
+    this.isPlaying = false;
   }
 
   init() {
-    if (this.initialized) return;
-    try {
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if (!AudioCtx) return;
-      this.ctx = new AudioCtx();
+    if (this.audio) return;
+    this.audio = new Audio('/site-audio.mp3');
+    this.audio.loop = true;
+    this.audio.preload = 'auto';
+    this.audio.volume = 0.5;
 
-      this.masterGain = this.ctx.createGain();
-      this.masterGain.gain.setValueAtTime(0.0001, this.ctx.currentTime);
-      this.masterGain.connect(this.ctx.destination);
+    this.play();
+  }
 
-      // Mastered soothing whale song: filtered to remove harsh barking seals and sharp noise
-      this.audioElement = new Audio('/soothing-whale-song.mp3');
-      this.audioElement.loop = true;
-      this.audioElement.preload = 'auto';
-
-      try {
-        this.elementSource = this.ctx.createMediaElementSource(this.audioElement);
-        // Underwater acoustic lowpass filter: preserves soothing deep singing, eliminates hiss
-        const warmFilter = this.ctx.createBiquadFilter();
-        warmFilter.type = 'lowpass';
-        warmFilter.frequency.setValueAtTime(800, this.ctx.currentTime);
-        warmFilter.Q.setValueAtTime(1.1, this.ctx.currentTime);
-
-        const trackGain = this.ctx.createGain();
-        trackGain.gain.setValueAtTime(0.7, this.ctx.currentTime);
-
-        this.elementSource.connect(warmFilter);
-        warmFilter.connect(trackGain);
-        trackGain.connect(this.masterGain);
-      } catch (e) {
-        // Fallback for CORS restriction
-        this.audioElement.volume = 0.25;
-      }
-
-      this.initialized = true;
-
-      // Start playback & smooth fade-in
-      const playPromise = this.audioElement.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(() => {});
-      }
-
-      // Gentle, non-intrusive ambient level
-      this.masterGain.gain.exponentialRampToValueAtTime(0.24, this.ctx.currentTime + 3);
-      this.scheduleGentleWhaleMelodies();
-      this.updateUI();
-    } catch (e) {
-      console.warn('Whale audio init error:', e);
+  play() {
+    if (!this.audio) this.init();
+    const p = this.audio.play();
+    if (p !== undefined) {
+      p.then(() => {
+        this.isPlaying = true;
+      }).catch(() => {
+        this.isPlaying = false;
+      });
     }
   }
 
   ensureRunning() {
-    if (!this.initialized) {
+    if (!this.audio) {
       this.init();
-    }
-    if (this.ctx && this.ctx.state === 'suspended') {
-      this.ctx.resume().then(() => this.updateUI()).catch(() => {});
-    }
-    if (this.audioElement && this.audioElement.paused) {
-      this.audioElement.play().then(() => this.updateUI()).catch(() => {});
+    } else if (this.audio.paused) {
+      this.play();
     }
   }
 
-  // Meditative, organic Humpback Whale melodic vocalizations
-  scheduleGentleWhaleMelodies() {
-    if (this.whaleCallTimer) clearInterval(this.whaleCallTimer);
-    // Every 14 seconds, generate a soothing, harmonic whale song glide
-    this.whaleCallTimer = setInterval(() => {
-      this.playMeditativeWhaleVocal();
-    }, 14000);
-  }
-
-  playMeditativeWhaleVocal() {
-    if (!this.ctx || this.ctx.state !== 'running') return;
-    try {
-      const t = this.ctx.currentTime;
-      // Gentle Humpback singing contour: gliding sine wave between 180Hz and 360Hz
-      const osc = this.ctx.createOscillator();
-      osc.type = 'sine';
-
-      const motifs = [
-        { start: 220, mid: 329.6, end: 261.6 },
-        { start: 174.6, mid: 261.6, end: 196.0 },
-        { start: 246.9, mid: 349.2, end: 293.6 }
-      ];
-      const motif = motifs[Math.floor(Math.random() * motifs.length)];
-
-      osc.frequency.setValueAtTime(motif.start, t);
-      osc.frequency.exponentialRampToValueAtTime(motif.mid, t + 1.6);
-      osc.frequency.exponentialRampToValueAtTime(motif.end, t + 3.6);
-
-      // Resonant throat formant filter
-      const formant = this.ctx.createBiquadFilter();
-      formant.type = 'bandpass';
-      formant.frequency.setValueAtTime(380, t);
-      formant.Q.setValueAtTime(2.5, t);
-
-      // Very gentle, soothing swell envelope
-      const gain = this.ctx.createGain();
-      gain.gain.setValueAtTime(0.0001, t);
-      gain.gain.linearRampToValueAtTime(0.045, t + 1.2);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t + 4.2);
-
-      osc.connect(formant);
-      formant.connect(gain);
-      gain.connect(this.masterGain);
-
-      osc.start(t);
-      osc.stop(t + 4.5);
-    } catch (e) {}
-  }
-
-  // Interactive subtle sonar pulses when interacting with radar
   triggerScanPulse() {
     this.ensureRunning();
-    if (!this.ctx || this.ctx.state !== 'running') return;
-    try {
-      const t = this.ctx.currentTime;
-      const osc = this.ctx.createOscillator();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(260, t);
-      osc.frequency.exponentialRampToValueAtTime(520, t + 0.35);
-
-      const gain = this.ctx.createGain();
-      gain.gain.setValueAtTime(0.0001, t);
-      gain.gain.linearRampToValueAtTime(0.05, t + 0.05);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.45);
-
-      osc.connect(gain);
-      gain.connect(this.masterGain);
-      osc.start(t);
-      osc.stop(t + 0.5);
-    } catch (e) {}
   }
 
   triggerNodeLock() {
     this.ensureRunning();
-    if (!this.ctx || this.ctx.state !== 'running') return;
-    try {
-      const t = this.ctx.currentTime;
-      const osc = this.ctx.createOscillator();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(784, t); // G5 soft harmonic
-      osc.frequency.exponentialRampToValueAtTime(987.77, t + 0.08); // B5
-
-      const gain = this.ctx.createGain();
-      gain.gain.setValueAtTime(0.0001, t);
-      gain.gain.linearRampToValueAtTime(0.035, t + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
-
-      osc.connect(gain);
-      gain.connect(this.masterGain);
-      osc.start(t);
-      osc.stop(t + 0.28);
-    } catch (e) {}
   }
 
-  updateUI() {
-    const indicator = document.getElementById('sonic-indicator');
-    if (indicator) {
-      const isOnline = (this.ctx && this.ctx.state === 'running') || (this.audioElement && !this.audioElement.paused);
-      indicator.classList.toggle('is-active', isOnline);
-      const label = indicator.querySelector('.sonic-label');
-      if (label) {
-        label.textContent = isOnline ? 'WHALE SOUNDSCAPE ACTIVE' : 'WHALE SOUNDSCAPE SYNCING...';
-      }
-    }
+  playShimmerChime() {
+    this.ensureRunning();
   }
 }
 
-const whaleAudio = new WhaleAudioEngine();
+const ambientAudio = new VideoSoundtrackEngine();
 
 
 // ─── Render Main Application ──────────────────────────
@@ -302,24 +170,13 @@ function render() {
           </div>
         </a>
 
-        <div class="nav__actions">
-          <div class="sonic-indicator is-active" id="sonic-indicator" title="Compulsory Soothing Whale Soundscape Active">
-            <span class="eq-bars">
-              <span class="eq-bar"></span>
-              <span class="eq-bar"></span>
-              <span class="eq-bar"></span>
-              <span class="eq-bar"></span>
-            </span>
-            <span class="sonic-label">WHALE SOUNDSCAPE ACTIVE</span>
-          </div>
-          <ul class="nav__menu">
-            <li class="nav__link-item nav__link-item--desktop"><a href="#" class="nav__link nav__link--active">Radar Console</a></li>
-            <li class="nav__link-item nav__link-item--desktop"><a href="https://api.sorsa.io" target="_blank" rel="noopener" class="nav__link">API Docs</a></li>
-            ${state.results.length > 0 ? `
-              <li><button class="pill-btn is-active" id="btn-open-matrix">Matrix (${state.results.length})</button></li>
-            ` : ''}
-          </ul>
-        </div>
+        <ul class="nav__menu">
+          <li class="nav__link-item nav__link-item--desktop"><a href="#" class="nav__link nav__link--active">Radar Console</a></li>
+          <li class="nav__link-item nav__link-item--desktop"><a href="https://api.sorsa.io" target="_blank" rel="noopener" class="nav__link">API Docs</a></li>
+          ${state.results.length > 0 ? `
+            <li><button class="pill-btn is-active" id="btn-open-matrix">Matrix (${state.results.length})</button></li>
+          ` : ''}
+        </ul>
       </nav>
 
       <!-- Stage: Hero + Console -->
@@ -582,7 +439,7 @@ function attachEventListeners() {
   // Wake compulsory audio on input / interaction
   const consoleCard = document.querySelector('.console-card');
   if (consoleCard) {
-    consoleCard.addEventListener('pointerdown', () => whaleAudio.ensureRunning(), { passive: true });
+    consoleCard.addEventListener('pointerdown', () => ambientAudio.ensureRunning(), { passive: true });
   }
 
   document.querySelectorAll('.pill-btn[data-sort]').forEach(btn => {
@@ -630,7 +487,7 @@ async function startScan() {
   state.logs = [];
   state.targetUser = null;
   render();
-  whaleAudio.triggerScanPulse();
+  ambientAudio.triggerScanPulse();
 
   try {
     // 1. Balance verification
@@ -657,7 +514,7 @@ async function startScan() {
     updateProgress(15);
     const targetProfile = await api.getUserProfile(username);
     state.targetUser = targetProfile;
-    whaleAudio.triggerNodeLock();
+    ambientAudio.triggerNodeLock();
     addLog(`Node locked: ${targetProfile.display_name} (${formatNumber(targetProfile.followers_count)} followers, ${formatNumber(targetProfile.followings_count)} following)`);
 
     // 3. Top followers by Sorsa score
@@ -667,7 +524,7 @@ async function startScan() {
     try {
       const topFollowersResp = await api.getTopFollowers(username);
       topFollowers = topFollowersResp?.users || [];
-      if (topFollowers.length > 0) whaleAudio.triggerNodeLock();
+      if (topFollowers.length > 0) ambientAudio.triggerNodeLock();
       addLog(`Identified ${topFollowers.length} top scoring followers.`);
     } catch (e) {
       addLog(`Top followers scan: ${e.message}`);
@@ -778,7 +635,7 @@ async function startScan() {
     state.apiUsage = { ...state.apiUsage, used: api.requestsUsed };
     addLog(`✓ Scan complete! ${state.results.length} accounts analyzed using ${api.requestsUsed} API calls.`);
     updateProgress(100);
-    whaleAudio.playMeditativeWhaleVocal();
+    ambientAudio.playShimmerChime();
 
   } catch (err) {
     addLog(`✗ Error: ${err.message}`);
@@ -908,12 +765,12 @@ function exportCSV() {
 // ─── Initialize ───────────────────────────────────────
 render();
 
-// Compulsory Soothing Whale Soundscape auto-wake on any interaction
+// Compulsory Celestial Ambient Sound auto-wake on any interaction
 ['click', 'touchstart', 'keydown', 'pointerdown'].forEach(evt => {
   window.addEventListener(evt, () => {
-    whaleAudio.ensureRunning();
+    ambientAudio.ensureRunning();
   }, { passive: true });
 });
 
 // Auto-trigger immediately
-whaleAudio.init();
+ambientAudio.init();
