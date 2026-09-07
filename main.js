@@ -87,6 +87,62 @@ let state = {
   logs: []
 };
 
+// ─── Ambient Whale Soundscape Manager ──────────────────
+let audioPlaying = false;
+let ambientAudio = null;
+
+function getAmbientAudio() {
+  if (!ambientAudio) {
+    ambientAudio = new Audio('/whale-ambient.mp3');
+    ambientAudio.loop = true;
+    ambientAudio.volume = 0;
+  }
+  return ambientAudio;
+}
+
+function toggleAudio(forcePlay) {
+  const sound = getAmbientAudio();
+
+  if (audioPlaying && forcePlay !== true) {
+    // Smooth Fade Out
+    let v = sound.volume;
+    const fadeOut = setInterval(() => {
+      v = Math.max(0, v - 0.04);
+      sound.volume = v;
+      if (v <= 0) {
+        clearInterval(fadeOut);
+        sound.pause();
+        audioPlaying = false;
+        updateAudioUI();
+      }
+    }, 40);
+  } else {
+    // Smooth Fade In (gentle & soothing, capped at 0.3)
+    sound.play().then(() => {
+      audioPlaying = true;
+      updateAudioUI();
+      let v = sound.volume;
+      const fadeIn = setInterval(() => {
+        v = Math.min(0.28, v + 0.03);
+        sound.volume = v;
+        if (v >= 0.28) clearInterval(fadeIn);
+      }, 60);
+    }).catch(() => {
+      audioPlaying = false;
+      updateAudioUI();
+    });
+  }
+}
+
+function updateAudioUI() {
+  const btn = document.getElementById('btn-audio-toggle');
+  if (btn) {
+    btn.classList.toggle('is-playing', audioPlaying);
+    const label = btn.querySelector('.audio-label');
+    if (label) label.textContent = audioPlaying ? 'Whale Song' : 'Sound: Off';
+  }
+}
+
 
 // ─── Render Main Application ──────────────────────────
 function render() {
@@ -119,6 +175,12 @@ function render() {
         </a>
 
         <ul class="nav__menu">
+          <li>
+            <button class="btn-audio-toggle ${audioPlaying ? 'is-playing' : ''}" id="btn-audio-toggle" title="Toggle calming whale song">
+              <span class="eq-bars"><span class="eq-bar"></span><span class="eq-bar"></span><span class="eq-bar"></span></span>
+              <span class="audio-label">${audioPlaying ? 'Whale Song' : 'Sound: Off'}</span>
+            </button>
+          </li>
           <li><a href="#" class="nav__link nav__link--active">Radar Console</a></li>
           <li><a href="https://api.sorsa.io" target="_blank" rel="noopener" class="nav__link">API Docs</a></li>
           ${state.results.length > 0 ? `
@@ -384,6 +446,15 @@ function attachEventListeners() {
   const exportBtn = document.getElementById('btn-export-csv');
   if (exportBtn) exportBtn.addEventListener('click', exportCSV);
 
+  // Audio Toggle
+  const audioBtn = document.getElementById('btn-audio-toggle');
+  if (audioBtn) {
+    audioBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleAudio();
+    });
+  }
+
   document.querySelectorAll('.pill-btn[data-sort]').forEach(btn => {
     btn.addEventListener('click', () => {
       state.sortBy = btn.dataset.sort;
@@ -396,6 +467,18 @@ function attachEventListeners() {
     apiInput.addEventListener('change', () => {
       localStorage.setItem('sorsa_api_key', apiInput.value.trim());
     });
+  }
+
+  // Smooth Video Reveal
+  const video = document.querySelector('.video-bg');
+  if (video) {
+    if (video.readyState >= 2) {
+      video.classList.add('is-loaded');
+    } else {
+      video.addEventListener('loadeddata', () => video.classList.add('is-loaded'), { once: true });
+      video.addEventListener('canplay', () => video.classList.add('is-loaded'), { once: true });
+      setTimeout(() => video.classList.add('is-loaded'), 400);
+    }
   }
 }
 

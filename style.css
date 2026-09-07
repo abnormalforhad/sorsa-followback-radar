@@ -75,7 +75,7 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ── Background Video Layer ── */
+/* ── Background Video Layer & Smooth Fade Reveal ── */
 .video-bg-container {
   position: fixed;
   inset: 0;
@@ -84,6 +84,7 @@ html, body {
   overflow: hidden;
   z-index: 0;
   pointer-events: none;
+  background-color: #071933;
 }
 
 .video-bg {
@@ -92,14 +93,24 @@ html, body {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transform: scale(1.02);
+  transform: scale(1.04);
+  opacity: 0;
+  filter: blur(14px);
+  transition: opacity 2.4s cubic-bezier(0.16, 1, 0.3, 1), filter 2.4s cubic-bezier(0.16, 1, 0.3, 1), transform 2.4s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, filter, transform;
+}
+
+.video-bg.is-loaded {
+  opacity: 1;
+  filter: blur(0px);
+  transform: scale(1.01);
 }
 
 .video-bg-overlay {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 30%, rgba(11, 29, 58, 0.35) 0%, rgba(7, 18, 38, 0.72) 100%);
-  backdrop-filter: blur(2px);
+  background: radial-gradient(circle at 50% 30%, rgba(11, 29, 58, 0.3) 0%, rgba(7, 18, 38, 0.72) 100%);
+  backdrop-filter: blur(1.5px);
 }
 
 /* Subtle organic ambient glow (blue tint) */
@@ -128,13 +139,69 @@ html, body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 24px;
-  background: rgba(11, 29, 58, 0.55);
+  padding: 12px 24px;
+  background: rgba(11, 29, 58, 0.6);
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-pill);
   backdrop-filter: blur(16px);
   box-shadow: var(--shadow-sm);
   margin-bottom: 24px;
+}
+
+/* Audio Toggle Button */
+.btn-audio-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--surface-border);
+  background: rgba(14, 35, 70, 0.65);
+  color: var(--text-body);
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  transition: all 0.25s var(--transition-fluid);
+}
+
+.btn-audio-toggle:hover {
+  border-color: var(--color-cyan);
+  color: #FFFFFF;
+  box-shadow: 0 0 16px var(--color-cyan-glow);
+}
+
+.btn-audio-toggle.is-playing {
+  background: rgba(56, 189, 248, 0.18);
+  border-color: var(--color-cyan);
+  color: var(--color-cyan);
+}
+
+/* Equalizer Bars */
+.eq-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 11px;
+  width: 10px;
+}
+
+.eq-bar {
+  width: 2px;
+  background: currentColor;
+  border-radius: 1px;
+  height: 3px;
+  transition: height 0.2s ease;
+}
+
+.btn-audio-toggle.is-playing .eq-bar:nth-child(1) { animation: eqBounce 1.2s infinite ease-in-out; }
+.btn-audio-toggle.is-playing .eq-bar:nth-child(2) { animation: eqBounce 1.2s infinite ease-in-out 0.25s; }
+.btn-audio-toggle.is-playing .eq-bar:nth-child(3) { animation: eqBounce 1.2s infinite ease-in-out 0.5s; }
+
+@keyframes eqBounce {
+  0%, 100% { height: 3px; }
+  50% { height: 11px; }
 }
 
 .nav__brand {
